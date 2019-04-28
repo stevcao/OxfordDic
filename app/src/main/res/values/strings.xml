@@ -1,3 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">OxfordDic</string>
+    <string name="app_name">OXFordDictionary</string>
+    <string name="action_settings">Settings</string>
+    <string name="search">搜索</string>
+    <string name="no_search_local">对不起，无搜索结果</string>
+    <string name="search_progress_text">正在搜索...</string>
+    <string name="cancel">取消</string>
+    <string name="title_activity_splash">SplashActivity</string>
 </resources>
