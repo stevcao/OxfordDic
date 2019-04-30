@@ -13,7 +13,7 @@ public class SearchHistory {
 
     @NonNull
     @PrimaryKey
-    String _id;
+    String searchKey;
 
     @ColumnInfo(name = "wordId")
     String wordId;

@@ -13,11 +13,14 @@ public class FavorWord {
 
     @NonNull
     @PrimaryKey
-    public String _id;
-
-    @ColumnInfo(name = "wordId")
     public String wordId;
 
     @ColumnInfo(name = "comment")
     public String comment;
+
+    @ColumnInfo(name = "word")
+    public String word;
+
+    @ColumnInfo(name = "addTime")
+    public String addTime;
 }

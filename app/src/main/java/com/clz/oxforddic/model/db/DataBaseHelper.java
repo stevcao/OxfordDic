@@ -22,10 +22,18 @@ public class DataBaseHelper {
     }
 
     public WordDao getWordDao() {
-        if (!isInit) {
-            init();
-        }
+        init();
         return mDb.getWordDao();
+    }
+
+    public FavorDao getFavorDao() {
+        init();
+        return mDb.getFavorDao();
+    }
+
+    public SearchHistoryDao getHistoryDao() {
+        init();
+        return mDb.getSearchHistoryDao();
     }
 
     boolean isInit = false;
