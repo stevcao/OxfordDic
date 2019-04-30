@@ -101,6 +101,7 @@ public class AppInitActivity extends FragmentActivity {
                     Log.d(TAG, "loadComplete");
                     Intent i = new Intent(AppInitActivity.this, MainActivity.class);
                     startActivity(i);
+                    finish();
                 }
 
                 @Override

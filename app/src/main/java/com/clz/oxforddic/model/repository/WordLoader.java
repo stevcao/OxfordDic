@@ -128,6 +128,7 @@ public class WordLoader {
                             for (int i = 0; i < cells.length; i++) {
                                 if (i == 0) {
                                     word.word = cells[0].getContents();
+                                    word.wordLowerCase = word.word.toLowerCase();
                                     if (TextUtils.isEmpty(word.word)) break;
                                 } else if (i == 1) {
                                     word.html = cells[1].getContents();

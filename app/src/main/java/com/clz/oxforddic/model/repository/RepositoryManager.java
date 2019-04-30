@@ -10,7 +10,7 @@ public class RepositoryManager {
 
     private static RepositoryManager sInstance;
 
-    public RepositoryManager getInstance() {
+    public static RepositoryManager getInstance() {
         if (sInstance == null) {
             sInstance = new RepositoryManager();
         }

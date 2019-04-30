@@ -19,6 +19,8 @@ import java.util.List;
 public class MainActivity extends FragmentActivity {
 
     TabLayout mTabLayout;
+    TabsAdapter mTabAdapter;
+    ViewPager mViewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,9 +38,10 @@ public class MainActivity extends FragmentActivity {
         tabs.add(new TabFactory.TabInfo("收藏", R.drawable.favorites, FavorFragment.class));
         TabFactory tabFactory = new TabFactory(tabs);
         mTabLayout.setTabFactory(tabFactory);
-        final ViewPager viewPager = findViewById(R.id.viewpager);
-        viewPager.setAdapter(new TabsAdapter(getSupportFragmentManager(), tabFactory));
-        viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+        mViewPager = findViewById(R.id.viewpager);
+        mTabAdapter = new TabsAdapter(getSupportFragmentManager(), tabFactory);
+        mViewPager.setAdapter(mTabAdapter);
+        mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int i, float v, int i1) {
             }
@@ -55,9 +58,15 @@ public class MainActivity extends FragmentActivity {
         mTabLayout.setOnTabChangedListener(new TabLayout.OnTabChangedListener() {
             @Override
             public void onTabChanged(int curSelect) {
-                viewPager.setCurrentItem(curSelect);
+                mViewPager.setCurrentItem(curSelect);
             }
         });
         mTabLayout.setSelect(0);
+    }
+
+    public void goSearch(String keyWord) {
+        mViewPager.setCurrentItem(0);
+        DictionaryFragment fragment = (DictionaryFragment) mTabAdapter.getFragment(0);
+        fragment.startSearch(keyWord);
     }
 }

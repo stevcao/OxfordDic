@@ -11,14 +11,20 @@ import android.support.annotation.NonNull;
 @Entity(tableName = "SearchHistory")
 public class SearchHistory {
 
+    public SearchHistory(@NonNull String searchKey, String wordId, long searchTime) {
+        this.searchKey = searchKey;
+        this.wordId = wordId;
+        this.searchTime = searchTime;
+    }
+
     @NonNull
     @PrimaryKey
-    String searchKey;
+    public String searchKey;
 
     @ColumnInfo(name = "wordId")
-    String wordId;
+    public String wordId;
 
     @ColumnInfo(name = "searchTime")
-    String searchTime;
+    public long searchTime;
 
 }

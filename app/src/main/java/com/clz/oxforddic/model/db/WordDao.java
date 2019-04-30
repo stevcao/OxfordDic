@@ -19,6 +19,10 @@ public interface WordDao {
     @Query("SELECT * FROM Word")
     public List<Word> getAll();
 
+
+    @Query("SELECT _id, word FROM Word")
+    public List<Word> getAllOnlyWord();
+
     @Query("SELECT * FROM Word where word = :word")
     public List<Word> queryWord(String word);
 

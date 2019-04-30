@@ -15,29 +15,39 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebView;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.clz.oxforddic.R;
 import com.clz.oxforddic.model.db.DataBaseHelper;
 import com.clz.oxforddic.model.entity.Word;
+import com.clz.oxforddic.model.repository.RepositoryManager;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Create by stevcao on 2019/4/28
  */
 public class DictionaryFragment extends Fragment {
 
+    View mResultLayout;
+    View mSearchKeyWordLayout;
+    View mSearchProgressLayout;
+
 
     EditText mSearchKeyWord;
-    View mResultLayout;
     WebView mResultWebView;
     View mNoResultView;
     View clearTextBtn;
     Button searchTv;
+    ListView mSearchKeyWordList;
+    KeyWordsAdapter mKeyWordsAdapter;
+
 
 
     @Nullable
@@ -53,31 +63,19 @@ public class DictionaryFragment extends Fragment {
         clearTextBtn = root.findViewById(R.id.ib_clear_text);
         searchTv = root.findViewById(R.id.btn_cancel_search);
 
-        mSearchKeyWord.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
+        mSearchKeyWordLayout = root.findViewById(R.id.search_key_word_layout);
+        mSearchKeyWordList = root.findViewById(R.id.search_key_word_list);
+        mKeyWordsAdapter = new KeyWordsAdapter();
+        mSearchKeyWordList.setAdapter(mKeyWordsAdapter);
 
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-            }
+        mSearchProgressLayout = root.findViewById(R.id.search_progress_layout);
 
-            @Override
-            public void afterTextChanged(Editable s) {
-                if (s.length() > 0) {
-                    clearTextBtn.setVisibility(View.VISIBLE);
-                } else {
-                    clearTextBtn.setVisibility(View.GONE);
-                }
-            }
-        });
+        mSearchKeyWord.addTextChangedListener(mTextWatcher);
 
         mSearchKeyWord.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                    InputMethodManager imm = (InputMethodManager)v.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
                     startSearch(mSearchKeyWord.getText().toString());
                 }
                 return false;
@@ -98,7 +96,21 @@ public class DictionaryFragment extends Fragment {
         return root;
     }
 
+    private void hideSoftInput(View view) {
+        InputMethodManager imm = (InputMethodManager)view.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        RepositoryManager.getInstance().getWordRepository();
+    }
+
     public void startSearch(final String keyWord) {
+        hideSoftInput(mSearchKeyWord);
+        setTextWithWatcher(keyWord);
+        showSearchProgress();
         if (!TextUtils.isEmpty(keyWord)) {
             Thread searchThread = new Thread() {
                 @Override
@@ -114,6 +126,10 @@ public class DictionaryFragment extends Fragment {
                             }
                         }
                     });
+                    if (words.size() > 0) {
+                        Word word = words.get(0);
+                        RepositoryManager.getInstance().getHistoryRepository().saveHistory(keyWord, word);
+                    }
                 }
             };
             searchThread.start();
@@ -124,17 +140,128 @@ public class DictionaryFragment extends Fragment {
 
     public void showBlank() {
         mResultLayout.setVisibility(View.GONE);
+        mSearchKeyWordLayout.setVisibility(View.GONE);
+        mSearchProgressLayout.setVisibility(View.GONE);
+    }
+
+    public void showSearchProgress() {
+        mResultLayout.setVisibility(View.GONE);
+        mSearchKeyWordLayout.setVisibility(View.GONE);
+        mSearchProgressLayout.setVisibility(View.VISIBLE);
     }
 
     public void showResult(Word word) {
         mResultLayout.setVisibility(View.VISIBLE);
+        mSearchKeyWordLayout.setVisibility(View.GONE);
+        mSearchProgressLayout.setVisibility(View.GONE);
         if (word == null) {
             mNoResultView.setVisibility(View.VISIBLE);
             mResultWebView.setVisibility(View.GONE);
         } else {
             mNoResultView.setVisibility(View.GONE);
             mResultWebView.setVisibility(View.VISIBLE);
-            mResultWebView.loadData(word.html, "text/html", "UTF-8");
+            mResultWebView.clearCache(true);
+            mResultWebView.clearHistory();
+//            mResultWebView.loadData(word.html, "text/html", "UTF-8");
+            mResultWebView.loadDataWithBaseURL("", word.html, "text/html", "UTF-8", null);
+        }
+    }
+
+    public void showAssociatedKeys(List<String> keys) {
+        mResultLayout.setVisibility(View.GONE);
+        mSearchKeyWordLayout.setVisibility(View.VISIBLE);
+        mSearchProgressLayout.setVisibility(View.GONE);
+        mKeyWordsAdapter.update(keys);
+
+    }
+
+    private void setTextWithWatcher(String text) {
+        mSearchKeyWord.removeTextChangedListener(mTextWatcher);
+        mSearchKeyWord.setText(text);
+        mSearchKeyWord.addTextChangedListener(mTextWatcher);
+        mSearchKeyWord.setSelection(text.length());
+    }
+
+    TextWatcher mTextWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+            if (s.length() > 0) {
+                clearTextBtn.setVisibility(View.VISIBLE);
+                List<String> assocatedKeys = RepositoryManager.getInstance().getWordRepository().getAssociatedKey(s.toString());
+                showAssociatedKeys(assocatedKeys);
+                searchTv.setText("搜索");
+            } else {
+                clearTextBtn.setVisibility(View.GONE);
+                showBlank();
+            }
+        }
+    };
+
+    class KeyWordsAdapter extends BaseAdapter {
+
+        List<String> keys;
+
+        KeyWordsAdapter() {
+            keys = new ArrayList<>();
+        }
+
+        public void update(List<String> keys) {
+            this.keys = keys;
+            notifyDataSetChanged();
+        }
+
+        @Override
+        public int getCount() {
+            return keys.size();
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return keys.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            ViewHolder holder = null;
+            if (convertView == null) {
+                TextView tv = new TextView(getActivity());
+                convertView = tv;
+                holder = new ViewHolder();
+                holder.tv = tv;
+                convertView.setTag(holder);
+            } else {
+                holder = (ViewHolder) convertView.getTag();
+            }
+
+            final String key = (String)getItem(position);
+
+            holder.tv.setText(key);
+
+            convertView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    startSearch(key);
+                }
+            });
+
+            return convertView;
+        }
+
+        class ViewHolder {
+            TextView tv;
         }
     }
 

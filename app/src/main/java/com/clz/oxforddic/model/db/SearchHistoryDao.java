@@ -9,11 +9,13 @@ import android.arch.persistence.room.Query;
 
 import com.clz.oxforddic.model.entity.SearchHistory;
 
+import java.util.List;
+
 @Dao
 public interface SearchHistoryDao {
 
     @Query("SELECT * FROM SearchHistory")
-    public void getAllHistorySearch();
+    public List<SearchHistory> getAllHistorySearch();
 
     @Query("SELECT * FROM SearchHistory ORDER BY searchTime DESC")
     public DataSource.Factory<Integer, SearchHistory> getSearchHistoryDataFactory();

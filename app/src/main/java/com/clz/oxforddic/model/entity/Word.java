@@ -19,6 +19,9 @@ public class Word {
     @ColumnInfo(name = "word")
     public String word;
 
+    @ColumnInfo(name = "wordLowerCase")
+    public String wordLowerCase;
+
     @ColumnInfo(name = "html")
     public String html;
 
