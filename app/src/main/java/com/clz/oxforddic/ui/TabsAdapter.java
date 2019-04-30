@@ -25,7 +25,11 @@ public class TabsAdapter extends FragmentStatePagerAdapter {
     }
     @Override
     public Fragment getItem(int position){
-        Fragment fragment = mFactory.getFragment(position);
+        Fragment fragment = getFragment(position);
+        if (fragment != null) {
+            return fragment;
+        }
+        fragment = mFactory.getFragment(position);
         mFragments.put(position, fragment);
         return fragment;
     }

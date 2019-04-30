@@ -22,5 +22,10 @@ public class FavorWord {
     public String word;
 
     @ColumnInfo(name = "addTime")
-    public String addTime;
+    public long addTime;
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof FavorWord && ((FavorWord) obj).wordId.equals(wordId);
+    }
 }

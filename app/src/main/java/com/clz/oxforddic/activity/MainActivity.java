@@ -55,6 +55,7 @@ public class MainActivity extends FragmentActivity {
         TabFactory tabFactory = new TabFactory(tabs);
         mTabLayout.setTabFactory(tabFactory);
         mViewPager = findViewById(R.id.viewpager);
+        mViewPager.setOffscreenPageLimit(3);
         mTabAdapter = new TabsAdapter(getSupportFragmentManager(), tabFactory);
         mViewPager.setAdapter(mTabAdapter);
         mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {

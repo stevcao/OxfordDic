@@ -29,7 +29,7 @@ import com.clz.oxforddic.ui.widget.EmptyViewObserver;
 /**
  * Create by stevcao on 2019/4/28
  */
-public class HistoryFragment extends Fragment{
+public class HistoryFragment extends BaseFragment {
 
     RecyclerView mHistoryList;
 
@@ -115,10 +115,5 @@ public class HistoryFragment extends Fragment{
             return history.searchKey.equals(t1.searchKey);
         }
     };
-
-    public void goToSearch(String searchKey) {
-        MainActivity activity = (MainActivity)getActivity();
-        activity.goSearch(searchKey);
-    }
 
 }

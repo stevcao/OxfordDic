@@ -19,6 +19,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,7 +34,7 @@ import java.util.List;
 /**
  * Create by stevcao on 2019/4/28
  */
-public class DictionaryFragment extends Fragment {
+public class DictionaryFragment extends BaseFragment {
 
     View mResultLayout;
     View mSearchKeyWordLayout;
@@ -42,6 +43,8 @@ public class DictionaryFragment extends Fragment {
     EditText mSearchKeyWord;
     WebView mResultWebView;
     View mNoResultView;
+    ImageView mFavorBtn;
+
     View mClearTextBtn;
     Button mSearchTv;
     RecyclerView mSearchKeyWordList;
@@ -56,6 +59,7 @@ public class DictionaryFragment extends Fragment {
         mResultLayout = root.findViewById(R.id.result_layout);
         mResultWebView = root.findViewById(R.id.search_result);
         mResultWebView.getSettings().setJavaScriptEnabled(true);
+        mFavorBtn = root.findViewById(R.id.favor_btn);
 
         mNoResultView = root.findViewById(R.id.no_result);
         mClearTextBtn = root.findViewById(R.id.ib_clear_text);
@@ -69,7 +73,7 @@ public class DictionaryFragment extends Fragment {
 
         mSearchProgressLayout = root.findViewById(R.id.search_progress_layout);
 
-        mSearchKeyWord.addTextChangedListener(mTextWatcher);
+        addTextWatcher();
 
         mSearchKeyWord.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -156,7 +160,7 @@ public class DictionaryFragment extends Fragment {
         mSearchProgressLayout.setVisibility(View.VISIBLE);
     }
 
-    public void showResult(Word word) {
+    public void showResult(final Word word) {
         mResultLayout.setVisibility(View.VISIBLE);
         mSearchKeyWordLayout.setVisibility(View.GONE);
         mSearchProgressLayout.setVisibility(View.GONE);
@@ -171,6 +175,22 @@ public class DictionaryFragment extends Fragment {
 //            mResultWebView.loadData(word.html, "text/html", "UTF-8");
             mResultWebView.loadDataWithBaseURL("", word.html, "text/html", "UTF-8", null);
         }
+
+        final boolean isFavor = RepositoryManager.getInstance().getFavorRepository().isFavor(word);
+        mFavorBtn.setImageResource(isFavor ? R.drawable.fav : R.drawable.un_fav);
+        mFavorBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                boolean isFavor = RepositoryManager.getInstance().getFavorRepository().isFavor(word);
+                if (isFavor) {
+                    RepositoryManager.getInstance().getFavorRepository().removeFavor(word);
+                    mFavorBtn.setImageResource(R.drawable.un_fav);
+                } else {
+                    RepositoryManager.getInstance().getFavorRepository().addFavor(word);
+                    mFavorBtn.setImageResource(R.drawable.fav);
+                }
+            }
+        });
     }
 
     public void showAssociatedKeys(List<String> keys) {
@@ -182,10 +202,36 @@ public class DictionaryFragment extends Fragment {
     }
 
     private void setTextWithOutWatcher(String text) {
-        mSearchKeyWord.removeTextChangedListener(mTextWatcher);
+        removeTextWatcher();
         mSearchKeyWord.setText(text);
-        mSearchKeyWord.addTextChangedListener(mTextWatcher);
+        addTextWatcher();
         mSearchKeyWord.setSelection(text.length());
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        removeTextWatcher();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        addTextWatcher();
+    }
+
+    boolean isAddTextWatcher = false;
+
+    private void addTextWatcher() {
+        if (!isAddTextWatcher) {
+            mSearchKeyWord.addTextChangedListener(mTextWatcher);
+        }
+    }
+
+    private void removeTextWatcher() {
+        if (isAddTextWatcher) {
+            mSearchKeyWord.removeTextChangedListener(mTextWatcher);
+        }
     }
 
     TextWatcher mTextWatcher = new TextWatcher() {

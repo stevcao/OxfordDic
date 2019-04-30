@@ -1,5 +1,6 @@
 package com.clz.oxforddic.model.db;
 
+import android.arch.lifecycle.LiveData;
 import android.arch.paging.DataSource;
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Delete;
@@ -16,7 +17,7 @@ import java.util.List;
 public interface FavorDao {
 
     @Query("SELECT * FROM FavorWord")
-    List<FavorWord> getFavorWords();
+    LiveData<List<FavorWord>> getFavorWords();
 
 
     @Query("SELECT * FROM FavorWord WHERE wordId=:wordId")
@@ -26,7 +27,7 @@ public interface FavorDao {
     DataSource.Factory<Integer, FavorWord> getFavorWordsDataFactory();
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    public void addFavor(FavorWord favorWord);
+    public void addFavor(FavorWord... favorWord);
 
     @Delete
     public void removeFavor(FavorWord... favorWord);

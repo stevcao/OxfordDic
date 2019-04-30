@@ -27,7 +27,7 @@ import com.clz.oxforddic.ui.widget.EmptyViewObserver;
 /**
  * Create by stevcao on 2019/4/28
  */
-public class FavorFragment extends Fragment {
+public class FavorFragment extends BaseFragment {
 
     RecyclerView mFavorList;
 
@@ -106,8 +106,14 @@ public class FavorFragment extends Fragment {
                 });
             }
 
-            public void onBind(FavorWord favorWord) {
+            public void onBind(final FavorWord favorWord) {
                 favorTv.setText(favorWord.word);
+                itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        goToSearch(favorWord.word);
+                    }
+                });
             }
         }
     }
