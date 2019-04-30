@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -15,10 +17,8 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebView;
-import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,15 +39,13 @@ public class DictionaryFragment extends Fragment {
     View mSearchKeyWordLayout;
     View mSearchProgressLayout;
 
-
     EditText mSearchKeyWord;
     WebView mResultWebView;
     View mNoResultView;
-    View clearTextBtn;
-    Button searchTv;
-    ListView mSearchKeyWordList;
+    View mClearTextBtn;
+    Button mSearchTv;
+    RecyclerView mSearchKeyWordList;
     KeyWordsAdapter mKeyWordsAdapter;
-
 
 
     @Nullable
@@ -60,11 +58,12 @@ public class DictionaryFragment extends Fragment {
         mResultWebView.getSettings().setJavaScriptEnabled(true);
 
         mNoResultView = root.findViewById(R.id.no_result);
-        clearTextBtn = root.findViewById(R.id.ib_clear_text);
-        searchTv = root.findViewById(R.id.btn_cancel_search);
+        mClearTextBtn = root.findViewById(R.id.ib_clear_text);
+        mSearchTv = root.findViewById(R.id.btn_cancel_search);
 
         mSearchKeyWordLayout = root.findViewById(R.id.search_key_word_layout);
         mSearchKeyWordList = root.findViewById(R.id.search_key_word_list);
+        mSearchKeyWordList.setLayoutManager(new LinearLayoutManager(getContext()));
         mKeyWordsAdapter = new KeyWordsAdapter();
         mSearchKeyWordList.setAdapter(mKeyWordsAdapter);
 
@@ -82,14 +81,21 @@ public class DictionaryFragment extends Fragment {
             }
         });
 
-        searchTv.setOnClickListener(new View.OnClickListener() {
+        mSearchTv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (searchTv.getText().equals("取消")) {
+                if (mSearchTv.getText().equals("取消")) {
                     showBlank();
                 } else {
                     startSearch(mSearchKeyWord.getText().toString());
                 }
+            }
+        });
+
+        mClearTextBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mSearchKeyWord.setText("");
             }
         });
 
@@ -109,7 +115,7 @@ public class DictionaryFragment extends Fragment {
 
     public void startSearch(final String keyWord) {
         hideSoftInput(mSearchKeyWord);
-        setTextWithWatcher(keyWord);
+        setTextWithOutWatcher(keyWord);
         showSearchProgress();
         if (!TextUtils.isEmpty(keyWord)) {
             Thread searchThread = new Thread() {
@@ -175,7 +181,7 @@ public class DictionaryFragment extends Fragment {
 
     }
 
-    private void setTextWithWatcher(String text) {
+    private void setTextWithOutWatcher(String text) {
         mSearchKeyWord.removeTextChangedListener(mTextWatcher);
         mSearchKeyWord.setText(text);
         mSearchKeyWord.addTextChangedListener(mTextWatcher);
@@ -194,18 +200,21 @@ public class DictionaryFragment extends Fragment {
         @Override
         public void afterTextChanged(Editable s) {
             if (s.length() > 0) {
-                clearTextBtn.setVisibility(View.VISIBLE);
+                mClearTextBtn.setVisibility(View.VISIBLE);
                 List<String> assocatedKeys = RepositoryManager.getInstance().getWordRepository().getAssociatedKey(s.toString());
                 showAssociatedKeys(assocatedKeys);
-                searchTv.setText("搜索");
+                mSearchTv.setText("搜索");
             } else {
-                clearTextBtn.setVisibility(View.GONE);
+                mClearTextBtn.setVisibility(View.GONE);
                 showBlank();
             }
         }
     };
 
-    class KeyWordsAdapter extends BaseAdapter {
+    /**
+     * 联想词的Adapter
+     */
+    class KeyWordsAdapter extends RecyclerView.Adapter<KeyWordsAdapter.ViewHolder> {
 
         List<String> keys;
 
@@ -218,50 +227,41 @@ public class DictionaryFragment extends Fragment {
             notifyDataSetChanged();
         }
 
+        @NonNull
         @Override
-        public int getCount() {
+        public KeyWordsAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
+            View itemView = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.layout_associated_keys_item, viewGroup, false);
+            ViewHolder viewHolder = new ViewHolder(itemView);
+            return viewHolder;
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull ViewHolder viewHolder, int i) {
+            String key = keys.get(i);
+            viewHolder.onBind(key);
+        }
+
+        @Override
+        public int getItemCount() {
             return keys.size();
         }
 
-        @Override
-        public Object getItem(int position) {
-            return keys.get(position);
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return position;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            ViewHolder holder = null;
-            if (convertView == null) {
-                TextView tv = new TextView(getActivity());
-                convertView = tv;
-                holder = new ViewHolder();
-                holder.tv = tv;
-                convertView.setTag(holder);
-            } else {
-                holder = (ViewHolder) convertView.getTag();
+        class ViewHolder extends RecyclerView.ViewHolder {
+            TextView tv;
+            public ViewHolder(@NonNull View itemView) {
+                super(itemView);
+                this.tv = itemView.findViewById(R.id.key_word);
             }
 
-            final String key = (String)getItem(position);
-
-            holder.tv.setText(key);
-
-            convertView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    startSearch(key);
-                }
-            });
-
-            return convertView;
-        }
-
-        class ViewHolder {
-            TextView tv;
+            public void onBind(final String key) {
+                tv.setText(key);
+                itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        startSearch(key);
+                    }
+                });
+            }
         }
     }
 

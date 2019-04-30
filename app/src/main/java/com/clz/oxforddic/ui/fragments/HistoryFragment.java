@@ -11,6 +11,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.recyclerview.extensions.AsyncDifferConfig;
 import android.support.v7.util.DiffUtil;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -44,6 +45,7 @@ public class HistoryFragment extends Fragment{
         super.onViewCreated(view, savedInstanceState);
         mHistoryList = view.findViewById(R.id.history_list);
         mHistoryList.setLayoutManager(new LinearLayoutManager(getActivity()));
+        mHistoryList.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
         final HistoryListAdapter adapter = new HistoryListAdapter();
         PagedList.Config config = new PagedList.Config.Builder().setPageSize(30)
                 .setEnablePlaceholders(false).build();

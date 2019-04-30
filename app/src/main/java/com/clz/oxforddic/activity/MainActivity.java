@@ -1,9 +1,13 @@
 package com.clz.oxforddic.activity;
 
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
+import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 
 import com.clz.oxforddic.R;
 import com.clz.oxforddic.ui.TabFactory;
@@ -25,8 +29,20 @@ public class MainActivity extends FragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {// <5.0
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        } else {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            getWindow().setStatusBarColor(Color.GRAY);
+        }
+
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_main);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            findViewById(R.id.status_bar_bg).setVisibility(View.GONE);
+        }
         mTabLayout = findViewById(R.id.tab);
         initTabs();
     }
@@ -67,6 +83,8 @@ public class MainActivity extends FragmentActivity {
     public void goSearch(String keyWord) {
         mViewPager.setCurrentItem(0);
         DictionaryFragment fragment = (DictionaryFragment) mTabAdapter.getFragment(0);
-        fragment.startSearch(keyWord);
+        if (fragment != null) {
+            fragment.startSearch(keyWord);
+        }
     }
 }
